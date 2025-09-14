@@ -12,11 +12,26 @@ const updateUserProfile = async (req, res) => {
 			req.body.last_name,
 			req.body.email,
 			req.body.contact_number,
-			req.body.address
+			req.body.address,
+			req.body.username
 		);
 
-		var url = await saveImage(req.body.user_image, user_profile[0].user_id);
-		user_profile[0].image_url = url;
+
+		if (!user_profile || !Array.isArray(user_profile) || user_profile.length === 0) {
+			return res.status(404).json({ message: "User not found" });
+		}
+
+		const userId = user_profile[0] && user_profile[0].user_id;
+		if (req.body.user_image && userId) {
+			try {
+				const url = await saveImage(req.body.user_image, userId);
+				if (url) {
+					user_profile[0].image_url = url;
+				}
+			} catch (e) {
+				console.error("saveImage error:", e && e.message ? e.message : e);
+			}
+		}
 
 		res.status(200).json(user_profile);
 	} catch (error) {
@@ -27,7 +42,7 @@ const updateUserProfile = async (req, res) => {
 
 const getUserProfile = async (req, res) => {
 	try {
-		const { email } = req.body;
+		const email = (req.body && req.body.email) || (req.query && req.query.email);
 		if (!email) {
 			return res.status(400).send("Email is required");
 		}
