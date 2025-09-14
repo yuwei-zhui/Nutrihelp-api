@@ -1,11 +1,6 @@
 let { updateUser, saveImage } = require("../model/updateUserProfile.js");
 let getUser = require("../model/getUserProfile.js");
 
-/**
- * Update User Profile
- * - Normal users can update only their own profile (based on token email).
- * - Admins can update any profile by providing email in the body.
- */
 const updateUserProfile = async (req, res) => {
 	try {
 		if (!req.body.email) {
@@ -55,7 +50,6 @@ const updateUserProfile = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // If user image provided, save it and update image_url
     if (req.body.user_image) {
       const url = await saveImage(req.body.user_image, userProfile[0].user_id);
       userProfile[0].image_url = url;
@@ -68,11 +62,6 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
-/**
- * Get User Profile
- * - Normal users can only fetch their own profile (from token).
- * - Admins can fetch any profile using `?email=xxx`.
- */
 const getUserProfile = async (req, res) => {
 	try {
 		const email = (req.body && req.body.email) || (req.query && req.query.email);
@@ -82,7 +71,6 @@ const getUserProfile = async (req, res) => {
 
     let targetEmail = tokenEmail;
 
-    // Admin can override with query email
     if (role === "admin" && queryEmail) {
       targetEmail = queryEmail;
     }
